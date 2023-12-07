@@ -4,6 +4,7 @@ import { UsersModel } from 'src/users/entities/users.entity';
 import { HASH_ROUNDS, JWT_SECRET } from './const/auth.const';
 import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcrypt';
+import { decode } from 'punycode';
 
 @Injectable()
 export class AuthService {
@@ -28,6 +29,52 @@ export class AuthService {
    * 토큰을 사용해서 private route에 접근한다.
    *
    */
+
+  /**
+   * Header로부터 토큰을 받을 때,
+   * {authorization:'Basic {token}'}
+   * {authorization:'Bearer {token}}
+   */
+
+  extractTokenFromHeader(header: string, isBearer: boolean) {
+    //'Basic {token}' -> [Basic, {token}]
+    const splitToken = header.split(' ');
+
+    const prefix = isBearer ? 'Bearer' : 'Basic';
+
+    if (splitToken.length !== 2 || splitToken[0] !== prefix) {
+      throw new UnauthorizedException('잘못된 토큰입니다!');
+    }
+
+    const token = splitToken[1];
+
+    return token;
+  }
+
+  /**
+   * Basic slkdnkasjdknsakldjknkasjd
+   * 1)slkdnkasjdknsakldjknkasjd -> email:password
+   * 2) email:password -> [email, password]
+   * 3) {email:email, password:password}
+   */
+
+  decodeBasicToken(base64String: string) {
+    const decoded = Buffer.from(base64String, 'base64').toString('utf-8');
+
+    const split = decoded.split(':');
+
+    if (split.length !== 2) {
+      throw new UnauthorizedException('잘못된 유형의 토큰입니다.');
+    }
+
+    const email = split[0];
+    const password = split[1];
+
+    return {
+      email: email,
+      password: password,
+    };
+  }
 
   /**
    * 우리가 만들려는 기능
