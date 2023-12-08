@@ -5,6 +5,7 @@ import {
   Get,
   NotFoundException,
   Param,
+  ParseIntPipe,
   Post,
   Put,
 } from '@nestjs/common';
@@ -25,8 +26,8 @@ export class PostsController {
   //id에 해당되는 posts를 가져온다.
   // 예를 들어 id = 1일 경우 id가 1인 포스트를 가져온다.
   @Get(':id/')
-  getPost(@Param('id') id: string) {
-    return this.postsService.getPostById(+id);
+  getPost(@Param('id', ParseIntPipe) id: number) {
+    return this.postsService.getPostById(id);
   }
 
   //3)POST / posts
